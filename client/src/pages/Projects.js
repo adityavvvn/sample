@@ -252,7 +252,7 @@ const Projects = () => {
       {/* Project Timeline */}
       <div className="card">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Project Timeline</h2>
-        <ProjectTimeline data={projects} />
+        <ProjectTimeline projects={projects} />
       </div>
 
       {/* Projects Grid */}

@@ -4,6 +4,31 @@ import SkillGraph from '../components/SkillGraph';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
+// Color palette for different skills
+const colorPalette = [
+  '#3b82f6', // Blue
+  '#10b981', // Green
+  '#8b5cf6', // Purple
+  '#f59e0b', // Amber
+  '#ef4444', // Red
+  '#06b6d4', // Cyan
+  '#84cc16', // Lime
+  '#f97316', // Orange
+  '#ec4899', // Pink
+  '#6366f1', // Indigo
+  '#14b8a6', // Teal
+  '#f43f5e', // Rose
+];
+
+// Generate a color for each skill
+const generateSkillColors = (skills) => {
+  const colors = {};
+  skills.forEach((skill, index) => {
+    colors[skill.skill] = colorPalette[index % colorPalette.length];
+  });
+  return colors;
+};
+
 const Skills = () => {
   const { user } = useAuth();
   const [skills, setSkills] = useState([]);
@@ -14,6 +39,9 @@ const Skills = () => {
   const [form, setForm] = useState({ skill: '', proficiency: [{ date: '', level: 1 }] });
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState(null);
+
+  // Generate colors for skills
+  const skillColors = generateSkillColors(skills);
 
   // Fetch skills on mount
   useEffect(() => {
@@ -329,10 +357,38 @@ const Skills = () => {
               </div>
             )}
             {skills.map((skill) => (
-              <div key={skill._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div 
+                key={skill._id} 
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border-l-4"
+                style={{ borderLeftColor: skillColors[skill.skill] }}
+              >
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">{skill.skill}</h3>
-                  <p className="text-sm text-gray-600">{skill.proficiency.length} proficiency points</p>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: skillColors[skill.skill] }}
+                    ></div>
+                    <h3 className="font-medium text-gray-900">{skill.skill}</h3>
+                  </div>
+                  <div className="ml-6 space-y-2">
+                    <p className="text-sm text-gray-600">{skill.proficiency.length} proficiency points</p>
+                    {skill.proficiency.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full transition-all duration-300"
+                            style={{ 
+                              width: `${(skill.proficiency[skill.proficiency.length-1].level / 5) * 100}%`,
+                              backgroundColor: skillColors[skill.skill]
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-500 w-8 text-right">
+                          {skill.proficiency[skill.proficiency.length-1].level}/5
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">

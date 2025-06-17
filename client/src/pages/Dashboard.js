@@ -5,11 +5,26 @@ import {
   FolderOpen, 
   Briefcase,
   Plus,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ComparisonDashboard from '../components/ComparisonDashboard';
 import api from '../utils/api';
+
+// Sample job requirements for skill gap analysis
+const jobRequirementsData = {
+  'Full Stack Developer': [
+    { skill: 'React', required: 4 },
+    { skill: 'Node.js', required: 4 },
+    { skill: 'JavaScript', required: 5 },
+    { skill: 'TypeScript', required: 3 },
+    { skill: 'MongoDB', required: 3 },
+    { skill: 'Git', required: 4 },
+    { skill: 'Docker', required: 2 },
+    { skill: 'AWS', required: 2 },
+  ]
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -31,12 +46,12 @@ const Dashboard = () => {
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Job Matches',
+      title: 'Skill Gaps',
       value: '0',
       change: 'Loading...',
-      icon: Briefcase,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      icon: AlertTriangle,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50'
     },
     {
       title: 'Skill Growth',
@@ -49,6 +64,7 @@ const Dashboard = () => {
   ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [skillGaps, setSkillGaps] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -64,20 +80,25 @@ const Dashboard = () => {
         api.get('/api/projects')
       ]);
 
-      const skillsCount = skillsRes.data.data.length;
+      const skills = skillsRes.data.data;
       const projectsCount = projectsRes.data.data.length;
       
+      // Calculate skill gaps
+      const gaps = calculateSkillGaps(skills);
+      setSkillGaps(gaps);
+      
       // Calculate skill growth (simplified - could be enhanced with historical data)
-      const skillGrowth = skillsCount > 0 ? '+15%' : '0%';
+      const skillGrowth = skills.length > 0 ? '+15%' : '0%';
       
       // Calculate changes (simplified - could be enhanced with date filtering)
-      const skillsChange = skillsCount > 0 ? `+${Math.min(skillsCount, 3)} this month` : 'No skills yet';
+      const skillsChange = skills.length > 0 ? `+${Math.min(skills.length, 3)} this month` : 'No skills yet';
       const projectsChange = projectsCount > 0 ? `+${Math.min(projectsCount, 2)} this week` : 'No projects yet';
+      const gapsChange = gaps.length > 0 ? `${gaps.length} gaps found` : 'All requirements met';
 
       setStats([
         {
           title: 'Total Skills',
-          value: skillsCount.toString(),
+          value: skills.length.toString(),
           change: skillsChange,
           icon: Code,
           color: 'text-blue-600',
@@ -92,12 +113,12 @@ const Dashboard = () => {
           bgColor: 'bg-green-50'
         },
         {
-          title: 'Job Matches',
-          value: '8', // This could be fetched from jobs API when implemented
-          change: '+3 today',
-          icon: Briefcase,
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-50'
+          title: 'Skill Gaps',
+          value: gaps.length.toString(),
+          change: gapsChange,
+          icon: AlertTriangle,
+          color: 'text-red-600',
+          bgColor: 'bg-red-50'
         },
         {
           title: 'Skill Growth',
@@ -114,6 +135,30 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateSkillGaps = (skills) => {
+    const jobRequirements = jobRequirementsData['Full Stack Developer'];
+    const gaps = [];
+
+    jobRequirements.forEach(req => {
+      const userSkill = skills.find(s => s.skill.toLowerCase() === req.skill.toLowerCase());
+      const userLevel = userSkill && userSkill.proficiency && userSkill.proficiency.length > 0 
+        ? userSkill.proficiency[userSkill.proficiency.length - 1].level 
+        : 0;
+      
+      const gap = Math.max(0, req.required - userLevel);
+      if (gap > 0) {
+        gaps.push({
+          skill: req.skill,
+          gap: gap,
+          required: req.required,
+          current: userLevel
+        });
+      }
+    });
+
+    return gaps.sort((a, b) => b.gap - a.gap);
   };
 
   const handleQuickAction = (action) => {
@@ -246,6 +291,39 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Top Skill Gaps Summary */}
+      {skillGaps.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Top Skill Gaps to Address</h2>
+          <div className="card">
+            <div className="space-y-3">
+              {skillGaps.slice(0, 3).map((gap) => (
+                <div key={gap.skill} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div>
+                    <h4 className="font-medium text-gray-900">{gap.skill}</h4>
+                    <p className="text-sm text-gray-600">
+                      Current: Level {gap.current} | Required: Level {gap.required}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-red-600">
+                      Gap: {gap.gap} level{gap.gap !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {skillGaps.length > 3 && (
+                <div className="text-center py-2">
+                  <span className="text-sm text-gray-500">
+                    And {skillGaps.length - 3} more skill gaps. View detailed analysis below.
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Comparison Dashboard */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Skill Comparison</h2>
@@ -279,9 +357,9 @@ const Dashboard = () => {
                   <span className="text-xs text-gray-400 ml-auto">Just now</span>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                   <span className="text-sm text-gray-600">
-                    {stats[2].value > 0 ? `Found ${stats[2].value} job matches` : 'No job matches yet'}
+                    {skillGaps.length > 0 ? `Found ${skillGaps.length} skill gaps to address` : 'All skill requirements met'}
                   </span>
                   <span className="text-xs text-gray-400 ml-auto">Just now</span>
                 </div>
