@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ResumePDF from '../components/ResumePDF';
+import api from '../utils/api';
 
 const PublicPortfolio = () => {
   const { userId } = useParams();
@@ -14,68 +15,24 @@ const PublicPortfolio = () => {
     const fetchPortfolioData = async () => {
       try {
         setLoading(true);
-        // In a real app, you'd fetch user data, skills, and projects from the API
-        // For now, using mock data
-        const mockUserData = {
-          name: 'John Doe',
-          title: 'Full Stack Developer',
-          email: 'john.doe@example.com',
-          phone: '+1 (555) 123-4567',
-          location: 'San Francisco, CA',
-        };
-
-        const mockSkills = [
-          {
-            skill: 'React',
-            proficiency: [
-              { date: '2022-01-01', level: 2 },
-              { date: '2022-06-01', level: 3 },
-              { date: '2023-01-01', level: 4 },
-              { date: '2023-06-01', level: 5 },
-            ],
-            color: '#3b82f6',
-          },
-          {
-            skill: 'Node.js',
-            proficiency: [
-              { date: '2022-01-01', level: 1 },
-              { date: '2022-06-01', level: 2 },
-              { date: '2023-01-01', level: 3 },
-              { date: '2023-06-01', level: 4 },
-            ],
-            color: '#10b981',
-          },
-        ];
-
-        const mockProjects = [
-          {
-            id: 1,
-            title: 'E-commerce Platform',
-            tags: ['React', 'Node.js', 'MongoDB'],
-            startDate: '2022-01-01',
-            endDate: '2022-06-01',
-            description: 'A full-stack e-commerce solution with real-time inventory and payment integration.',
-          },
-          {
-            id: 2,
-            title: 'Task Management App',
-            tags: ['Vue.js', 'Firebase', 'TypeScript'],
-            startDate: '2022-07-01',
-            endDate: '2023-01-01',
-            description: 'A collaborative task management application with real-time updates and notifications.',
-          },
-        ];
-
-        setUserData(mockUserData);
-        setSkills(mockSkills);
-        setProjects(mockProjects);
+        setError(null);
+        // Fetch user, skills, and projects for the given userId
+        const [userRes, skillsRes, projectsRes] = await Promise.all([
+          api.get(`/api/users/${userId}`),
+          api.get(`/api/skills/${userId}`),
+          api.get(`/api/projects/${userId}`)
+        ]);
+        // User data may be under user or data depending on backend
+        const user = userRes.data.user || userRes.data.data || userRes.data;
+        setUserData(user);
+        setSkills(skillsRes.data.data || []);
+        setProjects(projectsRes.data.data || []);
       } catch (err) {
         setError('Failed to load portfolio data');
       } finally {
         setLoading(false);
       }
     };
-
     fetchPortfolioData();
   }, [userId]);
 

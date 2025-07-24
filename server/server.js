@@ -8,6 +8,8 @@ require('dotenv').config();
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet());
 app.use(morgan('combined'));
@@ -53,6 +55,7 @@ app.use('/api/skills', require('./routes/skills'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/jooble', require('./routes/jooble'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

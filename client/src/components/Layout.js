@@ -18,6 +18,7 @@ const Layout = ({ children }) => {
   const { user, logout } = useAuth();
 
   const navigation = [
+    { name: 'Home', href: '/', icon: BarChart3 },
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Skills', href: '/skills', icon: Code },
     { name: 'Projects', href: '/projects', icon: FolderOpen },

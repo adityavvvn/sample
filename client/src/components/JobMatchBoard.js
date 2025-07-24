@@ -7,62 +7,100 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all'); // all, high-match, medium-match, low-match
+  const [userSkills, setUserSkills] = useState([]);
+  // Remove page state
+  // const [page, setPage] = useState(1);
+
+  // Replace with your Jooble API key
+  const JOOBLE_API_KEY = 'ba5421c6-08ce-46b3-b2af-0753e899f81c';
 
   useEffect(() => {
-    const fetchJobMatches = async () => {
+    // Fetch user skills
+    const fetchSkills = async () => {
       try {
-        setLoading(true);
-        // In a real app, this would fetch from the API
-        // const response = await axios.get(`/api/jobs/match?userId=${userId}`);
-        // setJobs(response.data.data);
-        
-        // Mock data for demonstration
-        const mockJobs = [
-          {
-            _id: '1',
-            title: 'Senior React Developer',
-            company: 'TechCorp Inc.',
-            tags: ['React', 'TypeScript', 'Node.js', 'AWS'],
-            location: 'San Francisco, CA',
-            salary: '$120k - $150k',
-            description: 'We are looking for a senior React developer...',
-            matchScore: 95,
-            matchedTags: ['React', 'TypeScript', 'Node.js']
-          },
-          {
-            _id: '2',
-            title: 'Full Stack Developer',
-            company: 'StartupXYZ',
-            tags: ['JavaScript', 'Python', 'MongoDB'],
-            location: 'Remote',
-            salary: '$90k - $110k',
-            description: 'Join our growing team as a full stack developer...',
-            matchScore: 87,
-            matchedTags: ['JavaScript', 'Python']
-          },
-          {
-            _id: '3',
-            title: 'Frontend Engineer',
-            company: 'DesignStudio',
-            tags: ['Vue.js', 'CSS', 'Design Systems'],
-            location: 'New York, NY',
-            salary: '$100k - $130k',
-            description: 'Create beautiful user interfaces...',
-            matchScore: 45,
-            matchedTags: ['CSS']
-          }
-        ];
-        
-        setJobs(mockJobs);
+        const res = await axios.get('/api/skills');
+        // Extract skill names as lowercase
+        setUserSkills(res.data.data.map(s => s.skill.toLowerCase()));
       } catch (err) {
-        setError('Failed to load job matches');
-      } finally {
-        setLoading(false);
+        setUserSkills([]);
       }
     };
+    fetchSkills();
+  }, []);
 
-    fetchJobMatches();
-  }, [userId]);
+  // Add a function to fetch jobs (so it can be called on refresh)
+  const fetchJoobleJobs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post(
+        '/api/jooble/search',
+        {
+          keywords: 'full stack developer, web designer, python developer, data scientist',
+          location: 'India',
+        }
+      );
+      console.log('Jooble API response:', response.data);
+      const joobleJobs = Array.isArray(response.data.jobs) ? response.data.jobs : [];
+      const normalize = str => str.toLowerCase().replace(/[^a-z0-9+]/gi, ' ');
+      const transformedJobs = joobleJobs.map(job => {
+        // Determine company wants (tags)
+        let companyWants = [];
+        const stopwords = new Set(['the', 'and', 'for', 'with', 'a', 'an', 'of', 'to', 'in', 'on', 'at', 'by', 'as', 'is', 'are', 'from', 'or', 'be', 'this', 'that', 'it', 'job', 'developer', 'engineer', 'manager', 'senior', 'junior']);
+        if (Array.isArray(job.skills) && job.skills.length > 0) {
+          companyWants = job.skills;
+        } else if (job.profession) {
+          companyWants = [job.profession];
+        } else if (job.title) {
+          companyWants = job.title
+            .split(/[^a-zA-Z0-9+]+/)
+            .map(w => w.trim().toLowerCase())
+            .filter(w => w.length > 2 && !stopwords.has(w));
+        }
+        // Combine job title, description, and tags into a single string
+        const jobText = normalize(
+          (job.title || '') + ' ' +
+          (job.description || '') + ' ' +
+          (companyWants.join(' '))
+        );
+        // Split jobText into unique words for partial matching
+        const jobWords = new Set(jobText.split(/\s+/).filter(Boolean));
+        // Find which user skills are present in the job text (partial match)
+        const matchedTags = userSkills.filter(skill => {
+          const normSkill = normalize(skill);
+          // Match if any job word contains the skill as a substring
+          return Array.from(jobWords).some(word => word.includes(normSkill));
+        });
+        const matchScore = userSkills.length > 0
+          ? Math.round((matchedTags.length / userSkills.length) * 100)
+          : 0;
+        return {
+          _id: job.id || job.link,
+          title: job.title,
+          company: job.company || 'Unknown',
+          tags: companyWants,
+          location: job.location || job.city || 'Unknown',
+          salary: job.salary || 'N/A',
+          description: job.snippet || job.description,
+          matchScore,
+          matchedTags,
+          redirect_url: job.link,
+        };
+      });
+      setJobs(transformedJobs);
+      // setPage(nextPage); // Remove page update
+    } catch (err) {
+      setError('Failed to load jobs from Jooble');
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch jobs when userSkills change
+  useEffect(() => {
+    fetchJoobleJobs(); // Always fetch first page
+  }, [userSkills]);
 
   const getMatchColor = (score) => {
     if (score >= 80) return 'text-green-600 bg-green-50';
@@ -102,6 +140,17 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
 
   return (
     <div className="space-y-6">
+      {/* Refresh Button */}
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={fetchJoobleJobs}
+          className="btn-secondary flex items-center gap-2"
+          disabled={loading}
+        >
+          {loading && <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></span>}
+          Refresh Jobs
+        </button>
+      </div>
       {/* Filter Controls */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
@@ -132,15 +181,32 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
 
       {/* Job Listings */}
       <div className="space-y-4">
-        {filteredJobs.map((job) => (
+        {Array.isArray(filteredJobs) && filteredJobs.map((job) => (
           <div key={job._id} className="card hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getMatchColor(job.matchScore)}`}>
-                    <Star className="w-3 h-3 fill-current" />
-                    <span>{job.matchScore}% Match</span>
+                  <div className="relative group flex items-center">
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getMatchColor(job.matchScore)}`}>
+                      <Star className="w-3 h-3 fill-current" />
+                      <span>{job.matchScore}% Match</span>
+                    </div>
+                    {/* Tooltip on hover */}
+                    <div className="absolute left-1/2 z-10 hidden group-hover:flex flex-col min-w-[220px] -translate-x-1/2 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-xs text-gray-800 whitespace-pre-line">
+                      <div className="mb-2">
+                        <span className="font-semibold">Your Skills:</span>
+                        <span className="ml-1">{userSkills.length > 0 ? userSkills.join(', ') : 'None'}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="font-semibold">Matched in Job:</span>
+                        <span className="ml-1">{job.matchedTags.length > 0 ? job.matchedTags.join(', ') : 'None'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Company Wants:</span>
+                        <span className="ml-1">{job.tags.length > 0 ? job.tags.join(', ') : 'Not specified'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <p className="text-gray-600 mb-3">{job.company}</p>
@@ -170,7 +236,7 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
                 </div>
                 <p className="text-sm text-gray-600">{job.description}</p>
               </div>
-              <button className="btn-primary ml-4 whitespace-nowrap">Apply</button>
+              <a href={job.redirect_url} target="_blank" rel="noopener noreferrer" className="btn-primary ml-4 whitespace-nowrap">Apply</a>
             </div>
           </div>
         ))}

@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import PublicPortfolio from './pages/PublicPortfolio';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Home from './pages/Home';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -46,6 +47,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public routes */}
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={
         <PublicRoute>
           <Login />
@@ -59,13 +61,6 @@ function AppRoutes() {
       <Route path="/portfolio/:userId" element={<PublicPortfolio />} />
       
       {/* Protected routes */}
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Layout>
-            <Dashboard />
-          </Layout>
-        </ProtectedRoute>
-      } />
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Layout>
