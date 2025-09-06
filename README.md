@@ -1,14 +1,15 @@
-# SkillPlot - Visual Resume & Career Mapper
+# SkillSpot - Visual Resume & Career Mapper
 
-A full-stack web application for creating visual resumes, tracking skill progression, and mapping career development with interactive visualizations.
+A comprehensive full-stack web application for creating professional visual resumes, tracking skill progression with certificates, and mapping career development with interactive visualizations.
 
 ## 🚀 Features
 
 ### Core Functionality
-- **Interactive Skill Graphs**: Visualize skill proficiency over time using D3.js
+- **Enhanced Interactive Skill Graphs**: Beautiful D3.js visualizations with gradient areas and certificate indicators
+- **Certificates & Credentials Management**: Add, track, and display professional certifications for each skill
 - **Project Timeline**: Showcase projects with a beautiful timeline interface
 - **Job Matching**: Match your skills with job requirements
-- **Resume Export**: Generate printable PDF resumes
+- **Professional Resume Export**: Generate high-quality PDF resumes with certificates and enhanced visuals
 - **Public Portfolio**: Share your professional profile publicly
 - **Comparison Dashboard**: Compare your skills vs job requirements
 
@@ -18,10 +19,11 @@ A full-stack web application for creating visual resumes, tracking skill progres
 - **Protected Routes**: Secure access to personal data
 
 ### Data Management
-- **CRUD Operations**: Full Create, Read, Update, Delete for skills and projects
-- **Real-time Updates**: Live data synchronization
-- **Data Validation**: Comprehensive input validation
-- **Error Handling**: User-friendly error messages
+- **CRUD Operations**: Full Create, Read, Update, Delete for skills, projects, and certificates
+- **Real-time Updates**: Live data synchronization with automatic refresh
+- **Data Validation**: Comprehensive input validation and sanitization
+- **Error Handling**: User-friendly error messages and loading states
+- **Certificate Tracking**: Complete certificate lifecycle management
 
 ## 🛠️ Tech Stack
 
@@ -109,22 +111,53 @@ A full-stack web application for creating visual resumes, tracking skill progres
 ## 🗂️ Project Structure
 
 ```
-skillplot/
+SkillSpot/
 ├── client/                 # React frontend
 │   ├── public/            # Static files
+│   ├── src/               # Source code
 │   │   ├── components/    # Reusable components
+│   │   │   ├── EnhancedSkillGraph.js  # Enhanced D3.js skill visualization
+│   │   │   ├── ResumePDF.js           # Professional resume component
+│   │   │   ├── SkillGraph.js          # Original skill graph
+│   │   │   ├── ProjectTimeline.js     # Project timeline visualization
+│   │   │   ├── JobMatchBoard.js       # Job matching interface
+│   │   │   ├── ComparisonDashboard.js # Skills comparison
+│   │   │   └── Layout.js              # Main layout component
 │   │   ├── pages/         # Page components
+│   │   │   ├── Skills.js              # Skills management with certificates
+│   │   │   ├── ResumeExport.js        # Resume generation and export
+│   │   │   ├── Dashboard.js           # Main dashboard
+│   │   │   ├── Projects.js            # Project management
+│   │   │   ├── JobMatches.js          # Job matching
+│   │   │   ├── PublicPortfolio.js     # Public portfolio view
+│   │   │   ├── Login.js               # Authentication
+│   │   │   ├── Register.js            # User registration
+│   │   │   └── Settings.js            # User settings
 │   │   ├── context/       # React context
+│   │   │   └── AuthContext.js         # Authentication state management
 │   │   ├── utils/         # Utility functions
+│   │   │   └── api.js                 # API communication
 │   │   └── index.js       # App entry point
 │   └── package.json
 ├── server/                # Node.js backend
 │   ├── models/           # Mongoose models
+│   │   ├── Skill.js                   # Skills with certificates schema
+│   │   ├── Project.js                 # Projects schema
+│   │   ├── Job.js                     # Job listings schema
+│   │   └── User.js                    # User authentication schema
 │   ├── routes/           # API routes
+│   │   ├── skills.js                  # Skills and certificates CRUD
+│   │   ├── projects.js                # Projects CRUD
+│   │   ├── jobs.js                    # Job listings and matching
+│   │   ├── users.js                   # User authentication
+│   │   └── jooble.js                  # External job API integration
 │   ├── middleware/       # Custom middleware
+│   │   └── auth.js                    # JWT authentication middleware
 │   ├── scripts/          # Database scripts
+│   │   └── cleanup-db.js              # Database maintenance
 │   └── server.js         # Server entry point
 ├── README.md
+├── project_analysis.txt
 └── package.json
 ```
 
@@ -135,12 +168,12 @@ skillplot/
 - `POST /api/users/login` - User login
 - `GET /api/users/me` - Get current user
 
-### Skills
-- `GET /api/skills` - Get user skills
-- `POST /api/skills` - Add new skill
-- `PUT /api/skills/:id` - Update skill
+### Skills & Certificates
+- `GET /api/skills` - Get user skills with certificates
+- `POST /api/skills` - Add new skill with certificates
+- `PUT /api/skills/:id` - Update skill and certificates
 - `DELETE /api/skills/:id` - Delete skill
-- `GET /api/skills/:userId` - Get public skills
+- `GET /api/skills/:userId` - Get public skills for portfolio
 
 ### Projects
 - `GET /api/projects` - Get user projects
@@ -163,10 +196,12 @@ skillplot/
 - Recent activity feed
 
 ### Skills Management
-- Add/edit/delete skills
-- Track proficiency over time
-- Interactive skill graphs
-- Multiple proficiency entries
+- Add/edit/delete skills with comprehensive forms
+- Track proficiency over time with multiple entries
+- Enhanced interactive skill graphs with gradient areas
+- Certificate and credential management per skill
+- Visual certificate indicators and badges
+- Professional skill progression visualization
 
 ### Project Portfolio
 - Project timeline visualization
@@ -181,10 +216,13 @@ skillplot/
 - Skill gap analysis
 
 ### Resume Export
-- PDF generation
-- Professional formatting
-- Skills and projects inclusion
-- Print-friendly design
+- High-quality PDF generation with professional formatting
+- Enhanced Skills Progression graph with gradient areas
+- Comprehensive certificate and credential display
+- Skills summary with visual indicators
+- Print-friendly design optimized for A4 format
+- Real-time data refresh and synchronization
+- Certificate count tracking and display
 
 ## 🔒 Security Features
 
@@ -240,6 +278,27 @@ For support and questions:
 - Email: your-email@example.com
 - Documentation: [Wiki](link-to-wiki)
 
+## 🆕 Recent Updates
+
+### Certificate & Credentials Management
+- **Complete Certificate System**: Add certificates with issuer, issue date, expiry date, credential ID, and verification URL
+- **Visual Indicators**: Certificate badges and counts displayed throughout the application
+- **Resume Integration**: Certificates automatically included in professional resume exports
+- **Enhanced UI**: Comprehensive certificate management forms with validation
+
+### Enhanced Skills Progression Graph
+- **Gradient Areas**: Beautiful gradient fills under skill progression lines
+- **Certificate Indicators**: Visual certificate counts in graph legend
+- **Professional Styling**: Enhanced colors, shadows, and typography for resume export
+- **Interactive Tooltips**: Detailed tooltips with certificate information
+- **Resume Mode**: Optimized display for PDF generation and printing
+
+### Improved User Experience
+- **Real-time Data Refresh**: Automatic data synchronization between pages
+- **Enhanced Forms**: Wider modals and better form layouts for certificate management
+- **Visual Feedback**: Loading states, error handling, and success indicators
+- **Professional Design**: Gradient backgrounds, shadows, and modern styling
+
 ---
 
-**SkillPlot** - Visualize your career journey with style! 🚀 
+**SkillSpot** - Visualize your career journey with professional certificates and style! 🚀📜 

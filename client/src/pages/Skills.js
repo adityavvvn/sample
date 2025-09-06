@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import SkillGraph from '../components/SkillGraph';
+import EnhancedSkillGraph from '../components/EnhancedSkillGraph';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
@@ -36,7 +36,11 @@ const Skills = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingSkill, setEditingSkill] = useState(null);
-  const [form, setForm] = useState({ skill: '', proficiency: [{ date: '', level: 1 }] });
+  const [form, setForm] = useState({ 
+    skill: '', 
+    proficiency: [{ date: '', level: 1 }],
+    certificates: []
+  });
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState(null);
 
@@ -94,6 +98,15 @@ const Skills = () => {
         proficiency: form.proficiency.map(prof => ({
           date: prof.date,
           level: parseInt(prof.level)
+        })),
+        certificates: form.certificates.map(cert => ({
+          name: cert.name.trim(),
+          issuer: cert.issuer.trim(),
+          issueDate: cert.issueDate,
+          expiryDate: cert.expiryDate || null,
+          credentialId: cert.credentialId?.trim() || null,
+          credentialUrl: cert.credentialUrl?.trim() || null,
+          description: cert.description?.trim() || null
         }))
       };
       
@@ -142,6 +155,15 @@ const Skills = () => {
         proficiency: form.proficiency.map(prof => ({
           date: prof.date,
           level: parseInt(prof.level)
+        })),
+        certificates: form.certificates.map(cert => ({
+          name: cert.name.trim(),
+          issuer: cert.issuer.trim(),
+          issueDate: cert.issueDate,
+          expiryDate: cert.expiryDate || null,
+          credentialId: cert.credentialId?.trim() || null,
+          credentialUrl: cert.credentialUrl?.trim() || null,
+          description: cert.description?.trim() || null
         }))
       };
       
@@ -178,7 +200,11 @@ const Skills = () => {
 
   // Reset form to initial state
   const resetForm = () => {
-    setForm({ skill: '', proficiency: [{ date: '', level: 1 }] });
+    setForm({ 
+      skill: '', 
+      proficiency: [{ date: '', level: 1 }],
+      certificates: []
+    });
     setError('');
   };
 
@@ -196,7 +222,8 @@ const Skills = () => {
       skill: skill.skill,
       proficiency: skill.proficiency && skill.proficiency.length > 0 
         ? skill.proficiency 
-        : [{ date: '', level: 1 }]
+        : [{ date: '', level: 1 }],
+      certificates: skill.certificates || []
     });
     setShowForm(true);
   };
@@ -235,6 +262,37 @@ const Skills = () => {
     });
   };
 
+  // Certificate management functions
+  const handleCertificateChange = (idx, field, value) => {
+    setForm((prev) => {
+      const certs = [...(prev.certificates || [])];
+      certs[idx] = { ...certs[idx], [field]: value };
+      return { ...prev, certificates: certs };
+    });
+  };
+
+  const addCertificateRow = () => {
+    setForm((prev) => ({ 
+      ...prev, 
+      certificates: [...(prev.certificates || []), { 
+        name: '', 
+        issuer: '', 
+        issueDate: '', 
+        expiryDate: '', 
+        credentialId: '', 
+        credentialUrl: '', 
+        description: '' 
+      }] 
+    }));
+  };
+
+  const removeCertificateRow = (idx) => {
+    setForm((prev) => ({
+      ...prev,
+      certificates: prev.certificates.filter((_, i) => i !== idx)
+    }));
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -254,7 +312,7 @@ const Skills = () => {
       {/* Add/Edit Skill Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <form className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full relative animate-fade-in" onSubmit={editingSkill ? handleEditSkill : handleAddSkill}>
+          <form className="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full relative animate-fade-in" onSubmit={editingSkill ? handleEditSkill : handleAddSkill}>
             <button type="button" className="absolute top-3 right-3 text-gray-400 hover:text-gray-700" onClick={closeForm}>
               ×
             </button>
@@ -302,6 +360,82 @@ const Skills = () => {
                 + Add Row
               </button>
             </div>
+            
+            {/* Certificates Section */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Certificates & Credentials</label>
+              {form.certificates && form.certificates.map((cert, idx) => (
+                <div key={idx} className="border border-gray-200 rounded-lg p-3 mb-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700">Certificate {idx + 1}</span>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-700 text-sm"
+                      onClick={() => removeCertificateRow(idx)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Certificate Name"
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      value={cert.name}
+                      onChange={e => handleCertificateChange(idx, 'name', e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Issuing Organization"
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      value={cert.issuer}
+                      onChange={e => handleCertificateChange(idx, 'issuer', e.target.value)}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="date"
+                        placeholder="Issue Date"
+                        className="border rounded px-2 py-1 text-sm"
+                        value={cert.issueDate}
+                        onChange={e => handleCertificateChange(idx, 'issueDate', e.target.value)}
+                      />
+                      <input
+                        type="date"
+                        placeholder="Expiry Date (Optional)"
+                        className="border rounded px-2 py-1 text-sm"
+                        value={cert.expiryDate}
+                        onChange={e => handleCertificateChange(idx, 'expiryDate', e.target.value)}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Credential ID (Optional)"
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      value={cert.credentialId}
+                      onChange={e => handleCertificateChange(idx, 'credentialId', e.target.value)}
+                    />
+                    <input
+                      type="url"
+                      placeholder="Credential URL (Optional)"
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      value={cert.credentialUrl}
+                      onChange={e => handleCertificateChange(idx, 'credentialUrl', e.target.value)}
+                    />
+                    <textarea
+                      placeholder="Description (Optional)"
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      rows="2"
+                      value={cert.description}
+                      onChange={e => handleCertificateChange(idx, 'description', e.target.value)}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button type="button" className="btn-secondary mt-2" onClick={addCertificateRow}>
+                + Add Certificate
+              </button>
+            </div>
+            
             <button type="submit" className="btn-primary w-full" disabled={adding}>
               {adding ? (editingSkill ? 'Updating...' : 'Adding...') : (editingSkill ? 'Update Skill' : 'Add Skill')}
             </button>
@@ -313,7 +447,9 @@ const Skills = () => {
       {/* Skill Graph */}
       <div className="card">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Skill Progression Graph</h2>
-        <SkillGraph data={skills} />
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4">
+          <EnhancedSkillGraph data={skills} width={800} height={400} isResume={false} />
+        </div>
       </div>
 
       {/* Skills List */}
@@ -386,6 +522,25 @@ const Skills = () => {
                         <span className="text-xs text-gray-500 w-8 text-right">
                           {skill.proficiency[skill.proficiency.length-1].level}/5
                         </span>
+                      </div>
+                    )}
+                    {skill.certificates && skill.certificates.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-1">
+                          {skill.certificates.length} certificate{skill.certificates.length > 1 ? 's' : ''}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {skill.certificates.slice(0, 3).map((cert, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              {cert.name}
+                            </span>
+                          ))}
+                          {skill.certificates.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{skill.certificates.length - 3} more
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

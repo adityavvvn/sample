@@ -49,7 +49,7 @@ const Login = () => {
         {/* ...existing login form fields/buttons... */}
         {/* Place your login form here, styled with Tailwind (inputs, button, etc.) */}
         {/** Example: **/}
-        <form className="w-full space-y-6">
+        <form className="w-full space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-blue-100 mb-1">Email</label>
             <div className="relative">
@@ -58,7 +58,8 @@ const Login = () => {
                 type="email"
                 className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/20 border border-blue-800 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your email"
-                // ...bind value/onChange as needed
+                value={email}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -67,10 +68,11 @@ const Login = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/20 border border-blue-800 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your password"
-                // ...bind value/onChange as needed
+                value={password}
+                onChange={e => setPassword(e.target.value)}
               />
             </div>
           </div>

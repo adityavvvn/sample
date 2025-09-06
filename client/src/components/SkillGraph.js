@@ -26,7 +26,7 @@ const generateSkillColors = (skills) => {
   return colors;
 };
 
-const SkillGraph = ({ data = [], width = 800, height = 400 }) => {
+const SkillGraph = ({ data = [], width = 800, height = 400, isResume = false }) => {
   const ref = useRef();
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const SkillGraph = ({ data = [], width = 800, height = 400 }) => {
         .attr('x', width / 2)
         .attr('y', height / 2)
         .attr('text-anchor', 'middle')
-        .attr('font-size', '16px')
+        .attr('font-size', isResume ? '14px' : '16px')
         .attr('fill', '#6b7280')
         .text('No skills data available. Add some skills to see the graph.');
       
@@ -49,7 +49,12 @@ const SkillGraph = ({ data = [], width = 800, height = 400 }) => {
     const svg = d3.select(ref.current);
     svg.selectAll('*').remove(); // Clear previous
 
-    const margin = { top: 50, right: 60, bottom: 60, left: 60 };
+    const margin = { 
+      top: isResume ? 40 : 50, 
+      right: isResume ? 40 : 60, 
+      bottom: isResume ? 50 : 60, 
+      left: isResume ? 50 : 60 
+    };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 

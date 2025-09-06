@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import { useLocation } from 'react-router-dom';
 import { Download, Share2, FileText, Eye, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
@@ -7,6 +8,7 @@ import ResumePDF from '../components/ResumePDF';
 
 const ResumeExport = () => {
   const componentRef = useRef();
+  const location = useLocation();
   const { user } = useAuth();
   const [skills, setSkills] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -18,9 +20,19 @@ const ResumeExport = () => {
     content: () => componentRef.current,
   });
 
-  // Fetch user data on component mount
+  // Fetch user data on component mount, when user changes, and when location changes
   useEffect(() => {
     fetchUserData();
+  }, [user?._id, location.pathname]);
+
+  // Refresh data when user returns to this tab/window
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchUserData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const fetchUserData = async () => {
@@ -74,11 +86,23 @@ const ResumeExport = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Resume Export</h1>
-        <p className="text-gray-600 mt-2">
-          Generate and share your professional resume with real data from your profile.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Resume Export</h1>
+          <p className="text-gray-600 mt-2">
+            Generate and share your professional resume with real data from your profile.
+          </p>
+        </div>
+        <button 
+          onClick={fetchUserData}
+          disabled={loading}
+          className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+        >
+          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          {loading ? 'Refreshing...' : 'Refresh Data'}
+        </button>
       </div>
 
       {/* Loading State */}
@@ -163,7 +187,7 @@ const ResumeExport = () => {
 
       {/* Data Summary */}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="card text-center">
             <div className="text-2xl font-bold text-blue-600">{skills.length}</div>
             <div className="text-sm text-gray-600">Skills</div>
@@ -177,6 +201,12 @@ const ResumeExport = () => {
               {skills.reduce((total, skill) => total + (skill.proficiency?.length || 0), 0)}
             </div>
             <div className="text-sm text-gray-600">Proficiency Points</div>
+          </div>
+          <div className="card text-center">
+            <div className="text-2xl font-bold text-orange-600">
+              {skills.reduce((total, skill) => total + (skill.certificates?.length || 0), 0)}
+            </div>
+            <div className="text-sm text-gray-600">Certificates</div>
           </div>
         </div>
       )}

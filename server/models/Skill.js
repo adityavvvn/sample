@@ -5,6 +5,16 @@ const proficiencySchema = new mongoose.Schema({
   level: { type: Number, required: true, min: 1, max: 5 },
 }, { _id: false });
 
+const certificateSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  issuer: { type: String, required: true, trim: true },
+  issueDate: { type: Date, required: true },
+  expiryDate: { type: Date },
+  credentialId: { type: String, trim: true },
+  credentialUrl: { type: String, trim: true },
+  description: { type: String, trim: true }
+}, { _id: false });
+
 const skillSchema = new mongoose.Schema({
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -26,6 +36,10 @@ const skillSchema = new mongoose.Schema({
       },
       message: 'At least one proficiency entry is required'
     }
+  },
+  certificates: {
+    type: [certificateSchema],
+    default: []
   },
 }, { 
   timestamps: true 

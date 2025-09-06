@@ -16,7 +16,7 @@ router.get('/', auth, async (req, res) => {
 // POST /api/skills - Add new skill (protected)
 router.post('/', auth, async (req, res) => {
   try {
-    const { skill, proficiency } = req.body;
+    const { skill, proficiency, certificates } = req.body;
     
     // Validate input
     if (!skill || !skill.trim()) {
@@ -49,7 +49,8 @@ router.post('/', auth, async (req, res) => {
     const newSkill = new Skill({ 
       userId: req.user._id, 
       skill: skill.trim(), 
-      proficiency 
+      proficiency,
+      certificates: certificates || []
     });
     
     await newSkill.save();
@@ -81,7 +82,7 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/skills/:id - Update skill (protected)
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { skill, proficiency } = req.body;
+    const { skill, proficiency, certificates } = req.body;
     
     // Validate input
     if (!skill || !skill.trim()) {
@@ -114,7 +115,7 @@ router.put('/:id', auth, async (req, res) => {
     
     const updatedSkill = await Skill.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
-      { skill: skill.trim(), proficiency },
+      { skill: skill.trim(), proficiency, certificates: certificates || [] },
       { new: true, runValidators: true }
     );
     
