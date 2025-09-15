@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 
 // Enhanced color palette for different skills
@@ -28,6 +28,24 @@ const generateSkillColors = (skills) => {
 
 const EnhancedSkillGraph = ({ data = [], width = 800, height = 400, isResume = false }) => {
   const ref = useRef();
+  const [containerWidth, setContainerWidth] = useState(width);
+
+  // Handle responsive sizing
+  useEffect(() => {
+    const updateWidth = () => {
+      if (ref.current) {
+        const container = ref.current.parentElement;
+        const availableWidth = container.clientWidth;
+        // Use available width but cap at original width for desktop
+        const newWidth = Math.min(availableWidth - 32, width); // 32px for padding
+        setContainerWidth(newWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, [width]);
 
   useEffect(() => {
     if (!data || data.length === 0) {
@@ -36,7 +54,7 @@ const EnhancedSkillGraph = ({ data = [], width = 800, height = 400, isResume = f
       svg.selectAll('*').remove();
       
       svg.append('text')
-        .attr('x', width / 2)
+        .attr('x', containerWidth / 2)
         .attr('y', height / 2)
         .attr('text-anchor', 'middle')
         .attr('font-size', isResume ? '14px' : '16px')
@@ -55,7 +73,7 @@ const EnhancedSkillGraph = ({ data = [], width = 800, height = 400, isResume = f
       bottom: isResume ? 50 : 60, 
       left: isResume ? 50 : 60 
     };
-    const innerWidth = width - margin.left - margin.right;
+    const innerWidth = containerWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
     // Generate colors for skills
@@ -324,11 +342,11 @@ const EnhancedSkillGraph = ({ data = [], width = 800, height = 400, isResume = f
       }
     });
 
-  }, [data, width, height, isResume]);
+  }, [data, containerWidth, height, isResume]);
 
   return (
     <div className={`w-full ${isResume ? 'overflow-visible' : 'overflow-x-auto'}`}>
-      <svg ref={ref} width={width} height={height} />
+      <svg ref={ref} width={containerWidth} height={height} />
     </div>
   );
 };
