@@ -446,9 +446,11 @@ const Skills = () => {
 
       {/* Skill Graph */}
       <div className="card">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Skill Progression Graph</h2>
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4">
-          <EnhancedSkillGraph data={skills} width={800} height={400} isResume={false} />
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Skill Progression Graph</h2>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-lg p-2 sm:p-4 overflow-x-auto">
+          <div className="min-w-[600px] sm:min-w-[800px]">
+            <EnhancedSkillGraph data={skills} width={800} height={300} isResume={false} />
+          </div>
         </div>
       </div>
 

@@ -12,7 +12,9 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -20,6 +22,7 @@ const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [theme, setTheme] = useState('light');
 
   // Check if device is mobile
   useEffect(() => {
@@ -49,6 +52,28 @@ const Layout = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Theme handling
+  useEffect(() => {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || stored === 'light') {
+      setTheme(stored);
+      document.documentElement.classList.toggle('dark', stored === 'dark');
+      return;
+    }
+    // system preference fallback
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initial = prefersDark ? 'dark' : 'light';
+    setTheme(initial);
+    document.documentElement.classList.toggle('dark', initial === 'dark');
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('theme', next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
+  };
+
   const navigation = [
     { name: 'Home', href: '/', icon: BarChart3 },
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -72,7 +97,7 @@ const Layout = ({ children }) => {
       <div className={`
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isMobile ? 'fixed inset-y-0 left-0 z-50 w-64' : 'relative w-64'}
-        bg-white shadow-sm border-r border-gray-200 transition-transform duration-300 ease-in-out
+        bg-white dark:bg-gray-900 shadow-sm border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out
       `}>
         <div className="p-6">
           <div className="flex items-center justify-between">
@@ -80,16 +105,25 @@ const Layout = ({ children }) => {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">SkillSpot</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">SkillSpot</h1>
             </div>
-            {isMobile && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={toggleSidebar}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={toggleTheme}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                <X className="w-5 h-5 text-gray-600" />
+                {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
               </button>
-            )}
+              {isMobile && (
+                <button
+                  onClick={toggleSidebar}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
         
@@ -114,17 +148,17 @@ const Layout = ({ children }) => {
         </nav>
 
         {/* Bottom section */}
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 space-y-2">
+        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
           {/* User info */}
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-blue-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                 {user?.name || 'User'}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user?.email || 'user@example.com'}
               </p>
             </div>
@@ -142,7 +176,7 @@ const Layout = ({ children }) => {
             </Link>
             <button
               onClick={logout}
-              className="sidebar-item w-full text-left text-red-600 hover:bg-red-50"
+              className="sidebar-item w-full text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
               <LogOut className="w-5 h-5" />
               <span className="font-medium">Logout</span>
@@ -152,23 +186,29 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         {/* Mobile header */}
         {isMobile && (
-          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <Menu className="w-6 h-6 text-gray-600" />
+              <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
             </button>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
                 <BarChart3 className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-gray-900">SkillSpot</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">SkillSpot</span>
             </div>
-            <div className="w-10"></div> {/* Spacer for centering */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+            </button>
           </div>
         )}
         
