@@ -108,12 +108,29 @@ const Layout = ({ children }) => {
               <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">SkillSpot</h1>
             </div>
             <div className="flex items-center gap-2">
+              {/* Theme slide switch */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-pressed={theme === 'dark'}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 ${theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'}`}
                 title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+                {/* optional end icons */}
+                <span className="absolute left-1 text-yellow-300">
+                  {theme !== 'dark' && <Sun className="w-3 h-3" />}
+                </span>
+                <span className="absolute right-1 text-gray-200">
+                  {theme === 'dark' && <Moon className="w-3 h-3" />}
+                </span>
+                <span
+                  className={`inline-flex items-center justify-center h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${theme === 'dark' ? 'translate-x-5' : 'translate-x-1'}`}
+                >
+                  {theme === 'dark' ? (
+                    <Moon className="w-3 h-3 text-blue-700" />
+                  ) : (
+                    <Sun className="w-3 h-3 text-yellow-500" />
+                  )}
+                </span>
               </button>
               {isMobile && (
                 <button
@@ -202,12 +219,28 @@ const Layout = ({ children }) => {
               </div>
               <span className="font-semibold text-gray-900 dark:text-gray-100">SkillSpot</span>
             </div>
+            {/* Theme slide switch - mobile header */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-pressed={theme === 'dark'}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 ${theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'}`}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+              <span className="absolute left-1 text-yellow-300">
+                {theme !== 'dark' && <Sun className="w-3 h-3" />}
+              </span>
+              <span className="absolute right-1 text-gray-200">
+                {theme === 'dark' && <Moon className="w-3 h-3" />}
+              </span>
+              <span
+                className={`inline-flex items-center justify-center h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${theme === 'dark' ? 'translate-x-5' : 'translate-x-1'}`}
+              >
+                {theme === 'dark' ? (
+                  <Moon className="w-3 h-3 text-blue-700" />
+                ) : (
+                  <Sun className="w-3 h-3 text-yellow-500" />
+                )}
+              </span>
             </button>
           </div>
         )}
