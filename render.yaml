@@ -1,0 +1,45 @@
+# Render Blueprint Configuration
+# This file allows you to deploy both services with a single configuration
+# Usage: In Render dashboard, click "New +" → "Blueprint" → Connect your repo
+
+services:
+  # Backend API Service
+  - type: web
+    name: skillspot-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: ./server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false  # You'll need to set this manually
+      - key: CLIENT_URLS
+        value: "http://localhost:3000,https://skillspot-frontend.onrender.com"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: JOOBLE_API_KEY
+        value: ba5421c6-08ce-46b3-b2af-0753e899f81c
+
+  # Frontend Static Site
+  - type: static
+    name: skillspot-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./client/build
+    rootDir: ./client
+    envVars:
+      - key: REACT_APP_API_URL
+        sync: false  # You'll need to set this to your backend URL
+
+# Note: After deploying, you'll need to:
+# 1. Set MONGODB_URI in backend environment variables
+# 2. Update CLIENT_URLS in backend environment variables with your actual frontend URL
+# 3. The frontend will auto-detect the backend URL, but you can set REACT_APP_API_URL if needed

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSpot Login Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SkillSpot Login Debug Tool</h1>
+        <p>Use this tool to test login functionality and debug API connectivity issues.</p>
+        
+        <div class="form-group">
+            <label for="apiUrl">API Base URL:</label>
+            <input type="text" id="apiUrl" value="https://skillspot-backend.onrender.com" placeholder="Enter your backend URL">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Enter your email">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter your password">
+        </div>
+        
+        <button onclick="testConnection()">Test API Connection</button>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testRegister()">Test Register</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+        }
+
+        async function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            showResult('Testing API connection...', 'info');
+            
+            try {
+                const response = await fetch(`${apiUrl}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ API Connection Successful!<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } else {
+                    showResult(`❌ API Connection Failed: ${response.status} ${response.statusText}<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network Error: ${error.message}<br><br>This might be a CORS issue. Try opening this file from a web server instead of file:// protocol.`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showResult('Please enter both email and password', 'error');
+                return;
+            }
+            
+            showResult('Testing login...', 'info');
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ Login Successful!<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } else {
+                    showResult(`❌ Login Failed: ${response.status} ${response.statusText}<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network Error: ${error.message}<br><br>This might be a CORS issue. Try opening this file from a web server instead of file:// protocol.`, 'error');
+            }
+        }
+
+        async function testRegister() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showResult('Please enter both email and password', 'error');
+                return;
+            }
+            
+            showResult('Testing registration...', 'info');
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/users/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        name: 'Test User',
+                        email, 
+                        password,
+                        title: 'Software Developer',
+                        location: 'Test Location'
+                    }),
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ Registration Successful!<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } else {
+                    showResult(`❌ Registration Failed: ${response.status} ${response.statusText}<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network Error: ${error.message}<br><br>This might be a CORS issue. Try opening this file from a web server instead of file:// protocol.`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
