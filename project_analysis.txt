@@ -180,4 +180,31 @@ graph TD
 
     E --> H
     I --> J
-``` 
+```  
+
+### 7. Deployment Notes (Render)
+
+- Two services: frontend (React) and backend (Express) deployed on Render.
+- Backend environment variables:
+  - `MONGODB_URI`, `JWT_SECRET`, `NODE_ENV=production`
+  - `CLIENT_URLS` (comma-separated list including the frontend URL)
+  - `JOOBLE_API_KEY` for external job search
+  - Optional rate-limiting: `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`
+- Frontend environment variables:
+  - Optional `REACT_APP_API_URL` pointing to the backend Render URL
+  - If omitted, the client auto-detects `*.onrender.com` and targets the backend service URL
+
+### 8. Client API Base URL Behavior
+
+- `client/src/utils/api.js` chooses the base URL in this order:
+  1) If hostname contains `onrender.com` (production), force `https://skillspot-backend.onrender.com`
+  2) Else if `REACT_APP_API_URL` is set, use it
+  3) Else if localhost, use `http://localhost:5000`
+  4) Fallback to `http://localhost:5000`
+- The Axios instance also attaches `Authorization: Bearer <token>` from `localStorage.token`.
+
+### 9. Backend Caching and ETags
+
+- `server/server.js` disables ETags (`app.set('etag', false)`) and sets `Cache-Control: no-store` on `/api/*`.
+- Purpose: avoid 304 Not Modified responses returning empty bodies in some client environments; ensure fresh JSON responses.
+- CORS is configured to allow multiple origins via `CLIENT_URLS`; requests with no origin are also allowed (e.g., server-to-server).

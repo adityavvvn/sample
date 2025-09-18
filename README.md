@@ -43,7 +43,9 @@ A comprehensive full-stack web application for creating professional visual resu
 - **Mongoose** - MongoDB object modeling
 - **JWT** - JSON Web Tokens for authentication
 - **bcryptjs** - Password hashing
-- **CORS** - Cross-origin resource sharing
+- **CORS** - Cross-origin resource sharing (configured for multi-origin via `CLIENT_URLS`)
+- **Express-Rate-Limit** - Basic rate limiting
+- **Helmet** - Secure headers
 
 ### Development Tools
 - **Jest** - Testing framework
@@ -61,8 +63,8 @@ A comprehensive full-stack web application for creating professional visual resu
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/skillplot.git
-   cd skillplot
+   git clone https://github.com/yourusername/SkillSpot.git
+   cd SkillSpot
    ```
 
 2. **Install dependencies**
@@ -76,15 +78,20 @@ A comprehensive full-stack web application for creating professional visual resu
    npm install
    ```
 
-3. **Environment Configuration**
+3. **Environment Configuration (local)**
    
-   Create `.env` file in the server directory:
+   Create `.env` file in the `server` directory (or use `env-files/server.env.local`):
    ```env
-   MONGODB_URI=mongodb://localhost:27017/skillplot
+   MONGODB_URI=mongodb://localhost:27017/skillspot
    JWT_SECRET=your_jwt_secret_here
    PORT=5000
    NODE_ENV=development
    CLIENT_URL=http://localhost:3000
+   # Optional
+   CLIENT_URLS=http://localhost:3000
+   RATE_LIMIT_WINDOW_MS=900000
+   RATE_LIMIT_MAX_REQUESTS=100
+   JOOBLE_API_KEY=your_jooble_api_key
    ```
 
 4. **Database Setup**
@@ -127,6 +134,7 @@ SkillSpot/
 │   │   │   ├── Skills.js              # Skills management with certificates
 │   │   │   ├── ResumeExport.js        # Resume generation and export
 │   │   │   ├── Dashboard.js           # Main dashboard
+│   │   │   ├── Home.js                # Home/Landing page
 │   │   │   ├── Projects.js            # Project management
 │   │   │   ├── JobMatches.js          # Job matching
 │   │   │   ├── PublicPortfolio.js     # Public portfolio view
@@ -169,7 +177,7 @@ SkillSpot/
 - `GET /api/users/me` - Get current user
 
 ### Skills & Certificates
-- `GET /api/skills` - Get user skills with certificates
+- `GET /api/skills` - Get authenticated user's skills with certificates (requires `Authorization: Bearer <token>`)
 - `POST /api/skills` - Add new skill with certificates
 - `PUT /api/skills/:id` - Update skill and certificates
 - `DELETE /api/skills/:id` - Delete skill
@@ -182,10 +190,15 @@ SkillSpot/
 - `DELETE /api/projects/:id` - Delete project
 - `GET /api/projects/:userId` - Get public projects
 
-### Jobs
+### Jobs & External Search
 - `GET /api/jobs` - Get job listings
 - `POST /api/jobs` - Add job listing
 - `GET /api/jobs/match` - Get job matches
+- `POST /api/jooble/search` - Proxy search to Jooble API (requires `JOOBLE_API_KEY` on server)
+
+### Notes
+- The server disables ETags and sets `Cache-Control: no-store` on `/api/*` to avoid 304 responses with empty bodies in some clients.
+- CORS is configured to allow multiple origins via `CLIENT_URLS` (comma-separated).
 
 ## 🎨 Features Overview
 
@@ -235,14 +248,23 @@ SkillSpot/
 
 ## 🚀 Deployment
 
-### Frontend Deployment (Vercel/Netlify)
-1. Build the React app: `npm run build`
-2. Deploy the `build` folder to your hosting platform
+### Render (recommended)
 
-### Backend Deployment (Heroku/Railway)
-1. Set environment variables
-2. Deploy the server directory
-3. Configure MongoDB connection
+Provision two Render services:
+- Web Service: Frontend (builds React app)
+- Web Service: Backend (`server` folder)
+
+Backend environment variables:
+- `MONGODB_URI`, `JWT_SECRET`, `NODE_ENV=production`, `CLIENT_URLS` (include your frontend URL), `JOOBLE_API_KEY`, optional rate limit variables.
+
+Frontend environment variables:
+- Optionally set `REACT_APP_API_URL=https://<your-backend>.onrender.com`. If unset, the client auto-detects Render and targets the backend URL.
+
+Important:
+- The client’s `client/src/utils/api.js` forces the base URL to the Render backend when running on `*.onrender.com` to prevent accidental misconfiguration.
+
+### Other platforms
+Configure the equivalent environment variables and ensure the frontend points to the backend API URL.
 
 ### Environment Variables for Production
 ```env
