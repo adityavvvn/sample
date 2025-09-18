@@ -2,20 +2,32 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-// Replace with your Jooble API key
-const JOOBLE_API_KEY = 'ba5421c6-08ce-46b3-b2af-0753e899f81c';
+// Get Jooble API key from environment variables
+const JOOBLE_API_KEY = process.env.JOOBLE_API_KEY;
 
 router.post('/search', async (req, res) => {
   try {
+    // Check if API key is configured
+    if (!JOOBLE_API_KEY) {
+      return res.status(500).json({ 
+        error: 'Jooble API key not configured', 
+        message: 'Please set JOOBLE_API_KEY in environment variables' 
+      });
+    }
+
     const response = await axios.post(
-      `https://jooble.org/api/${JOOBLE_API_KEY}`,
+      https://jooble.org/api/${JOOBLE_API_KEY},
       req.body,
       { headers: { 'Content-Type': 'application/json' } }
     );
     res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch from Jooble', details: err.message });
+    console.error('Jooble API error:', err.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch from Jooble', 
+      details: err.message 
+    });
   }
 });
 
-module.exports = router; 
+module.exports = router;
