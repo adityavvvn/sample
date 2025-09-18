@@ -9,6 +9,8 @@ require('dotenv').config();
 const app = express();
 
 app.set('trust proxy', 1);
+// Disable ETags to avoid 304 Not Modified responses for API JSON
+app.set('etag', false);
 
 // Middleware
 app.use(helmet());
@@ -56,6 +58,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+// Prevent caching on API routes to ensure clients receive fresh bodies
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
 // Rate limiting
 const limiter = rateLimit({
