@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -16,12 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  // Set up axios defaults
+  // Set up API defaults
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
-      delete axios.defaults.headers.common['Authorization'];
+      delete api.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -30,9 +30,10 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get('/api/users/me');
+          const response = await api.get('/api/users/me');
           setUser(response.data.user);
         } catch (error) {
+          console.error('Auth check failed:', error);
           localStorage.removeItem('token');
           setToken(null);
         }
@@ -45,7 +46,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/users/login', { email, password });
+      console.log('Attempting login with API URL:', api.defaults.baseURL);
+      const response = await api.post('/api/users/login', { email, password });
       const { token: newToken, user: userData } = response.data;
       
       localStorage.setItem('token', newToken);
@@ -54,6 +56,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Login failed' 
@@ -63,7 +66,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/users/register', userData);
+      console.log('Attempting registration with API URL:', api.defaults.baseURL);
+      const response = await api.post('/api/users/register', userData);
       const { token: newToken, user: userInfo } = response.data;
       
       localStorage.setItem('token', newToken);
@@ -72,6 +76,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Registration error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Registration failed' 

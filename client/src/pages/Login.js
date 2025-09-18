@@ -18,15 +18,20 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(email, password);
-    
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setError(result.message);
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      console.error('Login form error:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -50,37 +55,65 @@ const Login = () => {
         {/* Place your login form here, styled with Tailwind (inputs, button, etc.) */}
         {/** Example: **/}
         <form className="w-full space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-200 text-sm">
+              {error}
+            </div>
+          )}
+          
           <div>
             <label className="block text-sm font-medium text-blue-100 mb-1">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5" />
               <input
                 type="email"
-                className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/20 border border-blue-800 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={loading}
+                className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/20 border border-blue-800 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
             </div>
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-blue-100 mb-1">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5" />
               <input
                 type={showPassword ? "text" : "password"}
-                className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/20 border border-blue-800 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={loading}
+                className="w-full pl-10 pr-10 py-2 rounded-lg bg-white/20 border border-blue-800 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-300"
+                disabled={loading}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
+          
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg shadow-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:transform-none disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Logging in...
+              </div>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
         <div className="mt-6 text-blue-200 text-sm">
