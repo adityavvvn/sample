@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Star, MapPin, DollarSign, Filter } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const JobMatchBoard = ({ userId = 'demo-user' }) => {
   const [jobs, setJobs] = useState([]);
@@ -11,17 +11,17 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
   // Remove page state
   // const [page, setPage] = useState(1);
 
-  // Replace with your Jooble API key
-  const JOOBLE_API_KEY = 'ba5421c6-08ce-46b3-b2af-0753e899f81c';
+  // Jooble API key is now handled by the backend
 
   useEffect(() => {
     // Fetch user skills
     const fetchSkills = async () => {
       try {
-        const res = await axios.get('/api/skills');
+        const res = await api.get('/api/skills');
         // Extract skill names as lowercase
         setUserSkills(res.data.data.map(s => s.skill.toLowerCase()));
       } catch (err) {
+        console.error('Failed to fetch skills:', err);
         setUserSkills([]);
       }
     };
@@ -33,7 +33,7 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post(
+      const response = await api.post(
         '/api/jooble/search',
         {
           keywords: 'full stack developer, web designer, python developer, data scientist',
@@ -90,6 +90,7 @@ const JobMatchBoard = ({ userId = 'demo-user' }) => {
       setJobs(transformedJobs);
       // setPage(nextPage); // Remove page update
     } catch (err) {
+      console.error('Failed to fetch jobs:', err);
       setError('Failed to load jobs from Jooble');
       setJobs([]);
     } finally {
