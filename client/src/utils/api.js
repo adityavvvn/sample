@@ -1,24 +1,25 @@
 import axios from 'axios';
 
-// Get API URL with fallback logic
+// Get API URL with robust fallback logic
 const getApiUrl = () => {
-  // Use environment variable if set
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
-  
-  // Auto-detect based on current hostname
+  // Auto-detect based on current hostname first
   const hostname = window.location.hostname;
-  
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:5000';
-  }
-  
-  // For production deployment, construct backend URL
+
+  // In Render production, always use the backend service URL
   if (hostname.includes('onrender.com')) {
     return 'https://skillspot-backend.onrender.com';
   }
-  
+
+  // Use environment variable if explicitly set (non-Render environments)
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // Local development defaults
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000';
+  }
+
   // Default fallback
   return 'http://localhost:5000';
 };
