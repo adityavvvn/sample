@@ -16,7 +16,7 @@ router.post('/search', async (req, res) => {
     }
 
     const response = await axios.post(
-      https://jooble.org/api/${JOOBLE_API_KEY},
+      `https://jooble.org/api/${JOOBLE_API_KEY}`,
       req.body,
       { headers: { 'Content-Type': 'application/json' } }
     );
